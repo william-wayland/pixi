@@ -5,7 +5,7 @@
 int main()
 {
 	Game game;
-	if (game.Construct(256, 240, 4, 4))
+	if (game.Load());
 		game.Start();
 
 	return 0;
