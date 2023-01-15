@@ -19,6 +19,8 @@ private:
 	void Tick();
 	void Render();
 
+	void Reset();
+
 	constexpr static auto SCREEN_WIDTH = 245;
 	constexpr static auto SCREEN_HEIGHT = 525;
 	constexpr static auto N_ROW = 15;

@@ -14,14 +14,13 @@ Game::Game()
 	, m_tick_rate(0.2s)
 {
 	sAppName = "Pixi Game Engine";
+	Reset();
 }
 
 
 bool Game::Load()
 {
-	Construct(SCREEN_WIDTH, SCREEN_HEIGHT, 2, 2, false, true);
-
-	return true;
+	return Construct(SCREEN_WIDTH, SCREEN_HEIGHT, 2, 2, false, true);
 }
 
 bool Game::OnUserCreate()
@@ -44,6 +43,10 @@ bool Game::OnUserUpdate(float fElapsedTime)
 		m_size = next_size;
 		m_y -= 1;
 		m_tick_rate = static_cast<double>(m_tick_rate) * 0.94;
+	}
+
+	if (GetKey(olc::R).bPressed) {
+		Reset();
 	}
 
 	// Game Tick
@@ -69,21 +72,34 @@ void Game::Render()
 {
 	FillRect(0, 0, ScreenWidth(), ScreenHeight(), olc::BLACK);
 
-	// Grid
-	for (int y = 0; y < m_space.size(); y++) {
-		for (int x = 0; x < m_space[y].size(); x++) {
-			DrawRect(x * B_WIDTH, y * B_HEIGHT, B_HEIGHT, B_WIDTH, olc::WHITE);
-		}
-	}
-
+	// Previous rows
 	for (int y = 0; y < m_space.size(); y++) {
 		for (int x = 0; x < m_space[y].size(); x++) {
 			if (m_space[y][x])
-				FillRect(x * B_WIDTH + 1, y * B_HEIGHT + 1, B_HEIGHT - 1, B_WIDTH - 1, olc::BLUE);
+				FillRect(x * B_WIDTH, y * B_HEIGHT, B_HEIGHT, B_WIDTH, olc::BLUE);
 		}
 	}
 
+	// Player
 	for (int i = 0; i < m_size; ++i) {
 		FillRect((m_x + i) * B_WIDTH, m_y * B_HEIGHT, B_HEIGHT, B_WIDTH, olc::WHITE);
 	}
+
+	// Grid
+	for (int y = 0; y < m_space.size(); y++) {
+		for (int x = 0; x < m_space[y].size(); x++) {
+			DrawRect(x * B_WIDTH, y * B_HEIGHT, B_WIDTH - 1, B_HEIGHT - 1, olc::GREY);
+		}
+	}
+}
+
+void Game::Reset()
+{
+	m_space = {};
+	m_last_tick = Timestamp::Now() - 1s;
+	m_x = 2;
+	m_y = N_ROW - 1;
+	m_size = 3;
+	m_xv = 1;
+	m_tick_rate = 0.2s;
 }
