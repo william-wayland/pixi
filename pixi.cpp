@@ -2,11 +2,10 @@
 
 #include "Game.hpp"
 
-int main()
-{
-	Game game;
-	if (game.Load());
-		game.Start();
-
-	return 0;
+int main() {
+  Game game;
+  if (game.Load()) {
+    game.Start();
+  }
+  return 0;
 }
