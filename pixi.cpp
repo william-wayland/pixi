@@ -1,11 +1,12 @@
-﻿#define OLC_PGE_APPLICATION
+﻿#include <memory>
+#define OLC_PGE_APPLICATION
 
-#include "Game.hpp"
+#include "Menu.hpp"
 
 int main() {
-  Game game;
-  if (game.Load()) {
-    game.Start();
+  StateContext c(std::make_unique<Menu>());
+  if (c.Load()) {
+    c.Start();
   }
   return 0;
 }
