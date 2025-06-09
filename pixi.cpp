@@ -4,8 +4,9 @@
 #include "Menu.hpp"
 
 int main() {
-  StateContext c(std::make_unique<Menu>());
+  StateContext c{};
   if (c.Load()) {
+    c.TransitionTo(std::make_unique<Menu>());
     c.Start();
   }
   return 0;

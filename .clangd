@@ -1,0 +1,5 @@
+CompileFlags:
+  Add: ['-std:c++latest']
+
+Diagnostics:
+  Suppress: C++17-extensions

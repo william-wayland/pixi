@@ -1,6 +1,8 @@
 #pragma once
 
 #include "olcPixelGameEngine.h"
+#include <cstddef>
+#include <cstdlib>
 #include <memory>
 
 class StateContext;
@@ -23,9 +25,9 @@ protected:
 
 class StateContext : public olc::PixelGameEngine {
 public:
-  StateContext(std::unique_ptr<State> state) : m_state(nullptr) {
+  StateContext()
+      : m_state(nullptr), m_upcoming_state(nullptr), m_running(true) {
     sAppName = "Pixi Game Engine";
-    TransitionTo(std::move(state));
   }
 
   bool Load() {
@@ -33,24 +35,41 @@ public:
   }
 
   void TransitionTo(std::unique_ptr<State> state) {
-    if (state == nullptr)
-      return;
-    m_state = std::move(state);
-    m_state->SetContext(this);
+    m_upcoming_state = std::move(state);
   }
 
-  bool OnUserCreate() override { return true; }
-  bool OnUserUpdate(float fElapsedTime) override {
-    if (m_state) {
-      m_state->Tick(fElapsedTime);
-      m_state->Render();
-    }
-    return true;
-  }
+  void Quit() { m_running = false; }
 
   constexpr static auto SCREEN_WIDTH = 245;
   constexpr static auto SCREEN_HEIGHT = 525;
 
-private:
+protected:
+  bool OnUserCreate() override { return true; }
+  bool OnUserUpdate(float fElapsedTime) override {
+    if (!m_running) {
+      return false;
+    }
+
+    if (m_state) {
+      m_state->Tick(fElapsedTime);
+      m_state->Render();
+    }
+
+    if (m_upcoming_state != nullptr) {
+      m_state = nullptr;
+      m_state = std::move(m_upcoming_state);
+      m_state->SetContext(this);
+      m_upcoming_state = nullptr;
+    }
+
+    return true;
+  }
+
   std::unique_ptr<State> m_state;
+  std::unique_ptr<State> m_upcoming_state;
+  bool m_running;
 };
+
+template <typename T> std::unique_ptr<State> MakeState() {
+  return std::make_unique<T>();
+}
