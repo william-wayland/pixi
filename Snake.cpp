@@ -4,6 +4,12 @@
 
 #include <random>
 
+const static olc::vi2d ZERO = {0, 0};
+const static olc::vi2d LEFT = {-1, 0};
+const static olc::vi2d RIGHT = {1, 0};
+const static olc::vi2d UP = {0, -1};
+const static olc::vi2d DOWN = {0, 1};
+
 void Snake::Tick(float dt) {
   if (Timestamp::Now() - m_last_tick > m_tick_rate) {
     GameTick();
@@ -15,13 +21,13 @@ void Snake::Tick(float dt) {
   }
 
   if (Context()->GetKey(olc::LEFT).bPressed)
-    m_v = {-1, 0};
+    m_new_v = LEFT;
   if (Context()->GetKey(olc::RIGHT).bPressed)
-    m_v = {1, 0};
+    m_new_v = RIGHT;
   if (Context()->GetKey(olc::UP).bPressed)
-    m_v = {0, -1};
+    m_new_v = UP;
   if (Context()->GetKey(olc::DOWN).bPressed)
-    m_v = {0, 1};
+    m_new_v = DOWN;
 }
 
 void Snake::Render() {
@@ -43,20 +49,27 @@ void Snake::Render() {
 void Snake::Reset() {
   m_game_over = false;
   m_snake = {{3, 7}};
-  m_v = {0, 0};
+  m_v = ZERO;
+  m_new_v = ZERO;
   m_tick_rate = 0.2s;
   m_treat = RandomLocation();
 };
 
 void Snake::GameTick() {
-
   if (m_game_over) {
     return;
   }
 
-  // move snake
+  // if there's a new velocity and it isn't in the opposite direction
+  if (m_new_v != ZERO && m_new_v + m_v != ZERO) {
+    m_v = m_new_v;
+  }
+  m_new_v = ZERO;
+
+  // preemptive snake head
   const auto head = m_snake[0] + m_v;
 
+  // Check for consumption
   if (head == m_treat) {
     m_treat = RandomLocation(); // todo : check if location is free of snake?
     m_snake.push_front(head);
@@ -66,6 +79,7 @@ void Snake::GameTick() {
     return;
   }
 
+  // Move body (while checking for head collisions)
   for (auto i = m_snake.rbegin(); i < m_snake.rend() - 1; i++) {
     if (head == *(i)) {
       m_game_over = true;
@@ -73,6 +87,7 @@ void Snake::GameTick() {
     *i = *(i + 1);
   }
 
+  // Finally move the snakes head and wrap around world
   m_snake[0] = head;
   m_snake[0].x = (N_COLUMN + m_snake[0].x) % N_COLUMN;
   m_snake[0].y = (N_ROW + m_snake[0].y) % N_ROW;

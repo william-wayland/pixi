@@ -27,6 +27,7 @@ private:
 
   bool m_game_over;
   olc::vi2d m_v;
+  olc::vi2d m_new_v;
   std::deque<olc::vi2d> m_snake;
   olc ::vi2d m_treat;
 };
