@@ -19,7 +19,6 @@ void Stacker::Tick(float dt) {
 
   if (Context()->GetKey(olc::ESCAPE).bPressed) {
     Context()->TransitionTo(std::make_unique<Menu>());
-    return;
   }
 
   if (Context()->GetKey(olc::R).bPressed) {

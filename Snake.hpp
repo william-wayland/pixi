@@ -2,6 +2,7 @@
 
 #include "Context.hpp"
 #include "Time.hpp"
+#include <deque>
 
 class Snake : public State {
 public:
@@ -14,18 +15,18 @@ protected:
 private:
   void Reset();
   void GameTick();
+  olc ::vi2d RandomLocation();
 
   Timestamp m_last_tick;
   TimeDuration m_tick_rate;
 
-  constexpr static auto SCREEN_WIDTH = 500;
-  constexpr static auto SCREEN_HEIGHT = 500;
   constexpr static auto N_ROW = 15;
-  constexpr static auto N_COLUMN = 15;
-  constexpr static auto B_WIDTH = SCREEN_WIDTH / N_COLUMN;
-  constexpr static auto B_HEIGHT = SCREEN_HEIGHT / N_ROW;
+  constexpr static auto N_COLUMN = 7;
+  constexpr static auto B_WIDTH = StateContext::SCREEN_WIDTH / N_COLUMN;
+  constexpr static auto B_HEIGHT = StateContext::SCREEN_HEIGHT / N_ROW;
 
-  std::array<std::array<bool, N_COLUMN>, N_ROW> m_space;
+  bool m_game_over;
   olc::vi2d m_v;
-  std::vector<olc::vi2d> m_snake;
+  std::deque<olc::vi2d> m_snake;
+  olc ::vi2d m_treat;
 };

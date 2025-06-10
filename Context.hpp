@@ -25,45 +25,20 @@ protected:
 
 class StateContext : public olc::PixelGameEngine {
 public:
-  StateContext()
-      : m_state(nullptr), m_upcoming_state(nullptr), m_running(true) {
-    sAppName = "Pixi Game Engine";
-  }
+  StateContext();
 
-  bool Load() {
-    return Construct(SCREEN_WIDTH, SCREEN_HEIGHT, 2, 2, false, true);
-  }
+  bool Load();
 
-  void TransitionTo(std::unique_ptr<State> state) {
-    m_upcoming_state = std::move(state);
-  }
+  void TransitionTo(std::unique_ptr<State> state);
 
-  void Quit() { m_running = false; }
+  void Quit();
 
   constexpr static auto SCREEN_WIDTH = 245;
   constexpr static auto SCREEN_HEIGHT = 525;
 
 protected:
-  bool OnUserCreate() override { return true; }
-  bool OnUserUpdate(float fElapsedTime) override {
-    if (!m_running) {
-      return false;
-    }
-
-    if (m_state) {
-      m_state->Tick(fElapsedTime);
-      m_state->Render();
-    }
-
-    if (m_upcoming_state != nullptr) {
-      m_state = nullptr;
-      m_state = std::move(m_upcoming_state);
-      m_state->SetContext(this);
-      m_upcoming_state = nullptr;
-    }
-
-    return true;
-  }
+  bool OnUserCreate() override;
+  bool OnUserUpdate(float fElapsedTime) override;
 
   std::unique_ptr<State> m_state;
   std::unique_ptr<State> m_upcoming_state;
