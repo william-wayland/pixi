@@ -3,6 +3,7 @@
 #include "Menu.hpp"
 
 #include <random>
+#include <vector>
 
 const static olc::vi2d ZERO = {0, 0};
 const static olc::vi2d LEFT = {-1, 0};
@@ -20,6 +21,10 @@ void Snake::Tick(float dt) {
     Context()->TransitionTo(std::make_unique<Menu>());
   }
 
+  if (Context()->GetKey(olc::R).bPressed) {
+    Reset();
+  }
+
   if (Context()->GetKey(olc::LEFT).bPressed)
     m_new_v = LEFT;
   if (Context()->GetKey(olc::RIGHT).bPressed)
@@ -34,25 +39,23 @@ void Snake::Render() {
   // Background
   Context()->FillRect(0, 0, Context()->ScreenWidth(), Context()->ScreenHeight(),
                       olc::BLACK);
-
-  // Treat
-  Context()->FillRect(m_treat.x * B_WIDTH, m_treat.y * B_HEIGHT, B_HEIGHT,
-                      B_WIDTH, olc::GREEN);
-
   // Snake
   for (const auto &p : m_snake) {
     Context()->FillRect(p.x * B_WIDTH, p.y * B_HEIGHT, B_HEIGHT, B_WIDTH,
                         olc::WHITE);
   }
+  // Treat
+  Context()->FillRect(m_treat.x * B_WIDTH, m_treat.y * B_HEIGHT, B_HEIGHT,
+                      B_WIDTH, olc::GREEN);
 }
 
 void Snake::Reset() {
   m_game_over = false;
-  m_snake = {{3, 7}};
+  m_snake = {{2, 2}};
   m_v = ZERO;
   m_new_v = ZERO;
   m_tick_rate = 0.2s;
-  m_treat = RandomLocation();
+  m_treat = RandomLocationNotOnSnake();
 };
 
 void Snake::GameTick() {
@@ -67,30 +70,39 @@ void Snake::GameTick() {
   m_new_v = ZERO;
 
   // preemptive snake head
-  const auto head = m_snake[0] + m_v;
+  olc::vi2d head = m_snake[0] + m_v;
+  WrapPosition(&head);
 
   // Check for consumption
   if (head == m_treat) {
-    m_treat = RandomLocation(); // todo : check if location is free of snake?
     m_snake.push_front(head);
+
     if (m_snake.size() == N_ROW * N_COLUMN) {
       m_game_over = true;
+    } else {
+      m_treat = RandomLocationNotOnSnake();
     }
+
     return;
   }
 
   // Move body (while checking for head collisions)
   for (auto i = m_snake.rbegin(); i < m_snake.rend() - 1; i++) {
+    *i = *(i + 1);
     if (head == *(i)) {
       m_game_over = true;
     }
-    *i = *(i + 1);
   }
 
   // Finally move the snakes head and wrap around world
   m_snake[0] = head;
-  m_snake[0].x = (N_COLUMN + m_snake[0].x) % N_COLUMN;
-  m_snake[0].y = (N_ROW + m_snake[0].y) % N_ROW;
+  WrapPosition(&m_snake[0]);
+}
+
+int Snake::To1D(olc::vi2d in) { return in.x + in.y * N_COLUMN; }
+olc::vi2d Snake::To2D(int in) {
+  return {static_cast<int32_t>(in % N_COLUMN),
+          static_cast<int32_t>(in / N_COLUMN)};
 }
 
 olc::vi2d Snake::RandomLocation() {
@@ -98,4 +110,38 @@ olc::vi2d Snake::RandomLocation() {
   static std::uniform_int_distribution<int32_t> rx(0, N_COLUMN - 1);
   static std::uniform_int_distribution<int32_t> ry(0, N_ROW - 1);
   return {rx(dev), ry(dev)};
+}
+
+olc::vi2d Snake::RandomLocationNotOnSnake() {
+  static std::random_device dev;
+
+  const size_t remaining = (N_ROW * N_COLUMN) - m_snake.size();
+  std::uniform_int_distribution<size_t> dist(0, remaining);
+  const size_t index = dist(dev);
+
+  std::vector<bool> space(N_ROW * N_COLUMN, false);
+  for (const auto &part : m_snake) {
+    space[To1D(part)] = true;
+  }
+
+  int counter = 0;
+  for (int i = 0; i < space.size(); ++i) {
+    if (space[i]) {
+      continue;
+    }
+    if (counter == index) {
+      return To2D(i);
+    }
+    counter += 1;
+  }
+
+  // Shouldn't happen...
+  std::cout << "Random algorithm failed. Fallback to random position..."
+            << std::endl;
+  return RandomLocation();
+}
+
+void Snake::WrapPosition(olc::vi2d *pos) {
+  pos->x = (N_COLUMN + pos->x) % N_COLUMN;
+  pos->y = (N_ROW + pos->y) % N_ROW;
 }
