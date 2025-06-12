@@ -1,8 +1,6 @@
 #pragma once
 
 #include "olcPixelGameEngine.h"
-#include <cstddef>
-#include <cstdlib>
 #include <memory>
 
 class StateContext;

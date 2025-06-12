@@ -35,24 +35,43 @@ void Snake::Tick(float dt) {
     m_new_v = DOWN;
 }
 
+olc::vf2d DirectionToHeadOffset(olc::vi2d dir) {
+  if (dir == LEFT) {
+    return olc::vf2d{1, 0.5};
+  }
+  if (dir == RIGHT) {
+    return olc::vf2d{0, 0.5};
+  }
+  if (dir == UP) {
+    return olc::vf2d{0.5, 1};
+  }
+  if (dir == DOWN) {
+    return olc::vf2d{0.5, 0};
+  }
+  return ZERO;
+}
+
 void Snake::Render() {
   // Background
   Context()->FillRect(0, 0, Context()->ScreenWidth(), Context()->ScreenHeight(),
                       olc::BLACK);
-  // Snake
-  for (const auto &p : m_snake) {
-    Context()->FillRect(p.x * B_WIDTH, p.y * B_HEIGHT, B_HEIGHT, B_WIDTH,
-                        olc::WHITE);
+
+  auto head_origin =
+      m_snake[0] * B_DIMENSION + DirectionToHeadOffset(m_v) * B_DIMENSION;
+  Context()->FillCircle(head_origin, B_WIDTH / 2);
+
+  // Snake Body
+  for (auto s = m_snake.begin() + 1; s < m_snake.end(); s++) {
+    Context()->FillRect((*s) * B_DIMENSION, B_DIMENSION, olc::WHITE);
   }
   // Treat
-  Context()->FillRect(m_treat.x * B_WIDTH, m_treat.y * B_HEIGHT, B_HEIGHT,
-                      B_WIDTH, olc::GREEN);
+  Context()->FillRect(m_treat * B_DIMENSION, B_DIMENSION, olc::GREEN);
 }
 
 void Snake::Reset() {
   m_game_over = false;
-  m_snake = {{2, 2}};
-  m_v = ZERO;
+  m_snake = {{2, 4}, {2, 3}, {2, 2}};
+  m_v = DOWN;
   m_new_v = ZERO;
   m_tick_rate = 0.2s;
   m_treat = RandomLocationNotOnSnake();
@@ -124,15 +143,14 @@ olc::vi2d Snake::RandomLocationNotOnSnake() {
     space[To1D(part)] = true;
   }
 
-  int counter = 0;
-  for (int i = 0; i < space.size(); ++i) {
+  for (int i = 0, counter = 0; i < space.size(); ++i) {
     if (space[i]) {
       continue;
     }
     if (counter == index) {
       return To2D(i);
     }
-    counter += 1;
+    ++counter;
   }
 
   // Shouldn't happen...

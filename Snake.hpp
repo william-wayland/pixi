@@ -28,6 +28,7 @@ private:
   constexpr static size_t N_COLUMN = 7;
   constexpr static size_t B_WIDTH = StateContext::SCREEN_WIDTH / N_COLUMN;
   constexpr static size_t B_HEIGHT = StateContext::SCREEN_HEIGHT / N_ROW;
+  const olc::vi2d B_DIMENSION = {B_WIDTH, B_HEIGHT};
 
   bool m_game_over;
   olc::vi2d m_v;
